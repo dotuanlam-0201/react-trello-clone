@@ -11,8 +11,8 @@ import {
 } from "antd";
 import { useState } from "react";
 import CardComponent from "./CardComponent";
-import DrawerAddCard from "./DrawerAddCard";
 import { IListCard } from "./model";
+import ModalCardInfo from "./ModalCardInfo";
 
 interface IProps {
     list: IListCard;
@@ -53,16 +53,24 @@ const ListCardComponent = (props: IProps) => {
             >
                 <Row gutter={[20, 20]}>
                     <Col xs={24}>
-                        <CardComponent />
+                        <CardComponent onShowCardInfo={() => {
+                            setVisibleAddCard(true)
+                        }} />
                     </Col>
                     <Col xs={24}>
-                        <CardComponent />
+                        <CardComponent onShowCardInfo={() => {
+                            setVisibleAddCard(true)
+                        }} />
                     </Col>
                     <Col xs={24}>
-                        <CardComponent />
+                        <CardComponent onShowCardInfo={() => {
+                            setVisibleAddCard(true)
+                        }} />
                     </Col>
                     <Col xs={24}>
-                        <CardComponent />
+                        <CardComponent onShowCardInfo={() => {
+                            setVisibleAddCard(true)
+                        }} />
                     </Col>
                     <Col xs={24}>
                         <Button onClick={() => setVisibleAddCard(true)} icon={<PlusOutlined />} size="small" type="link">Add a card</Button>
@@ -70,7 +78,7 @@ const ListCardComponent = (props: IProps) => {
                 </Row>
             </Card>
 
-            <DrawerAddCard
+            <ModalCardInfo
                 visible={visibleAddCard}
                 onClose={() => setVisibleAddCard(false)}
             />

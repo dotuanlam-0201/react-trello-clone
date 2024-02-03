@@ -1,8 +1,12 @@
 import { Card, Col, Row } from 'antd'
 
-const CardComponent = () => {
+interface IProps {
+    onShowCardInfo: () => void
+}
+
+const CardComponent = (props: IProps) => {
     return (
-        <Card cover={<div style={{ height: 30, background: '#216e4e' }}>
+        <Card onClick={props.onShowCardInfo} cover={<div style={{ height: 30, background: '#216e4e' }}>
 
         </div>} bordered hoverable size='small'>
             <Row gutter={[5, 5]}>
@@ -13,7 +17,7 @@ const CardComponent = () => {
                     <div style={{ height: 10, background: '#216e4e', width: 50, borderRadius: '100px', marginRight: 5, display: "inline-block" }}></div>
                 </Col>
                 <Col xs={24}>
-                    Title 
+                    Title
                 </Col>
                 <Col xs={24}>
                     Description..........

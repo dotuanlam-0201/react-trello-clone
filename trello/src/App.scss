@@ -8,17 +8,25 @@
 }
 
 body {
+  background: rgb(34, 140, 213);
+
   div.ant-card {
     overflow: hidden;
   }
-  background: rgb(34, 140, 213);
+
   main#dashboard {
     padding: 1rem;
     overflow-x: auto;
-    div#dashboard-list-card{
-      
+
+    div#dashboard-list-card {}
+
+    div.dashboard-cardInfo_activity {
+      div.ant-list-item-meta-description {
+        line-height: 0.9
+      }
     }
   }
+
 
   div#header {
     background: #0000003d;
