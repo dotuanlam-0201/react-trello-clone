@@ -7,12 +7,16 @@ import {
     Menu,
     MenuProps,
     Modal,
-    Row
+    Row,
+    Space
 } from "antd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CardComponent from "./CardComponent";
-import { IListCard } from "./model";
+import { ICard, IListCard } from "./model";
 import ModalCardInfo from "./ModalCardInfo";
+import update from "react-addons-update";
+import { findIndex } from "lodash";
+import { v4 as uuidv4 } from 'uuid'
 
 interface IProps {
     list: IListCard;
@@ -20,6 +24,8 @@ interface IProps {
 
 const ListCardComponent = (props: IProps) => {
     const [visibleAddCard, setVisibleAddCard] = useState(false as boolean)
+    const [listCard, setListCard] = useState([] as ICard[])
+    const [selectedCard, setSelectedCard] = useState(undefined as undefined | ICard)
 
 
     const onClickMenuDropdown: MenuProps['onClick'] = (e) => {
@@ -27,6 +33,33 @@ const ListCardComponent = (props: IProps) => {
             setVisibleAddCard(true)
         }
     };
+
+    const onAddCard = (card: ICard) => {
+        if (selectedCard) {
+            const indexSelectedCard = findIndex(listCard, selectedCard)
+
+            if (indexSelectedCard < 0) return
+
+            const data = update(listCard, {
+                [indexSelectedCard]: {
+                    $set: card
+                }
+            })
+            setListCard(data)
+        } else {
+            const data = update(listCard, {
+                $push: [card]
+            })
+            setListCard(data)
+        }
+    }
+
+    const onDeleteCard = (card: ICard, index: number) => {
+        const data = update(listCard, {
+            $splice: [[index, 1]]
+        })
+        setListCard(data)
+    }
 
 
     return (
@@ -53,34 +86,41 @@ const ListCardComponent = (props: IProps) => {
             >
                 <Row gutter={[20, 20]}>
                     <Col xs={24}>
-                        <CardComponent onShowCardInfo={() => {
-                            setVisibleAddCard(true)
-                        }} />
+                        <Row gutter={[10, 10]}>
+                            {
+                                listCard.map((card: ICard, index: number) => {
+                                    return <Col xs={24}>
+                                        <CardComponent
+                                            key={uuidv4()}
+                                            index={index}
+                                            onDeleteCard={(card: ICard) => onDeleteCard(card, index)}
+                                            card={card}
+                                            onShowCardInfo={(card: ICard) => {
+                                                setSelectedCard(card)
+                                                setVisibleAddCard(true)
+                                            }}
+                                        />
+                                    </Col>
+                                })
+                            }
+                        </Row>
                     </Col>
-                    <Col xs={24}>
-                        <CardComponent onShowCardInfo={() => {
-                            setVisibleAddCard(true)
-                        }} />
-                    </Col>
-                    <Col xs={24}>
-                        <CardComponent onShowCardInfo={() => {
-                            setVisibleAddCard(true)
-                        }} />
-                    </Col>
-                    <Col xs={24}>
-                        <CardComponent onShowCardInfo={() => {
-                            setVisibleAddCard(true)
-                        }} />
-                    </Col>
+
                     <Col xs={24}>
                         <Button onClick={() => setVisibleAddCard(true)} icon={<PlusOutlined />} size="small" type="link">Add a card</Button>
                     </Col>
+
                 </Row>
             </Card>
 
             <ModalCardInfo
+                selectedCard={selectedCard}
+                onSave={onAddCard}
                 visible={visibleAddCard}
-                onClose={() => setVisibleAddCard(false)}
+                onClose={() => {
+                    setVisibleAddCard(false)
+                    setSelectedCard(undefined)
+                }}
             />
         </>
     );

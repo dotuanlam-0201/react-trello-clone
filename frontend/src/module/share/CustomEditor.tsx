@@ -1,6 +1,13 @@
-import React, { useRef } from 'react'
 import Editor from '@monaco-editor/react';
-const CustomEditor = () => {
+import React from 'react';
+import { useRef } from 'react';
+
+interface IProps {
+    onChange: (e?: string) => void
+    text: string
+}
+
+const CustomEditor = (props: IProps) => {
 
     const editorRef = useRef(null);
 
@@ -12,8 +19,9 @@ const CustomEditor = () => {
 
     return (
         <Editor
+            onChange={props.onChange}
             height="200px"
-            defaultValue="// some comment"
+            value={props.text}
             onMount={handleEditorDidMount}
         />
     );

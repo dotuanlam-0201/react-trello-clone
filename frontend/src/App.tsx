@@ -1,6 +1,6 @@
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import './App.scss';
-import GlobalLoading from './module/GlobalLoading';
+import GlobalLoading from './module/layout/GlobalLoading';
 import DashboardComponent from './module/dashboard/DashboardComponent';
 
 const loader = () => <GlobalLoading />

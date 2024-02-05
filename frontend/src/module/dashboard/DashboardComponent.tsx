@@ -4,8 +4,9 @@ import { isEmpty } from "lodash"
 import { useState } from "react"
 import update from "react-addons-update"
 import ListCardComponent from "./ListCardComponent"
-import Header from "./components/Header"
 import { IListCard } from "./model"
+import Header from "../layout/Header"
+import { v4 as uuidv4 } from 'uuid';
 
 const DashboardComponent = () => {
     const [listCard, setListCard] = useState([] as IListCard[])
@@ -33,7 +34,7 @@ const DashboardComponent = () => {
                 {!isEmpty(listCard) && <Row wrap={false} gutter={[20, 20]}>
                     {
                         listCard.map((list: IListCard) => {
-                            return <Col xs={24} sm={24} md={10} lg={8} xl={6} xxl={6}>
+                            return <Col key={uuidv4()} xs={24} sm={24} md={10} lg={8} xl={6} xxl={6}>
                                 <ListCardComponent list={list} />
                             </Col>
                         })
