@@ -1,5 +1,4 @@
 [build]
-    base: /opt/build/repo/frontend
-    command: npm i && npm run build
-    commandOrigin: config
-    publish: /opt/build/repo/frontend/dist
+ base = "frontend"
+ command = "npm i && npm run build"
+ publish = "/dist"
