@@ -1,4 +1,4 @@
-import { Active, DndContext, DragCancelEvent, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, closestCorners } from "@dnd-kit/core"
+import { Active, DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, closestCorners } from "@dnd-kit/core"
 import { SortableContext, horizontalListSortingStrategy } from "@dnd-kit/sortable"
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { Col, Row, Skeleton, notification } from "antd"
@@ -230,7 +230,7 @@ const DashboardComponent = () => {
         }
     }
 
-    const onDragCancel = (e: DragCancelEvent) => {
+    const onDragCancel = () => {
         setActive(undefined)
     }
 

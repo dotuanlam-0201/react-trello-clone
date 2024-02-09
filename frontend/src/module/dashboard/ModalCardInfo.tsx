@@ -46,11 +46,15 @@ interface IProps {
 
 const ModalCardInfo = (props: IProps) => {
     const [card, setCard] = useState({
-        title: "Title",
-        description: "",
+        title: '',
         labels: [],
+        description: '',
         comments: [],
-        cover: "",
+        cover: '',
+        _id: '',
+        createdAt: '',
+        updatedAt: '',
+        deadLine: '',
     } as ICard);
 
     const user: IResponse<IUser> | undefined = useGetFetchQuery(['user'])
@@ -60,11 +64,15 @@ const ModalCardInfo = (props: IProps) => {
             setCard(props.selectedCard);
         } else {
             setCard({
-                title: "Title",
-                description: "",
+                title: '',
                 labels: [],
+                description: '',
                 comments: [],
-                cover: "",
+                cover: '',
+                _id: '',
+                createdAt: '',
+                updatedAt: '',
+                deadLine: '',
             });
         }
     }, [props.visible]);
@@ -80,11 +88,12 @@ const ModalCardInfo = (props: IProps) => {
 
     const onChangeLable = (label: string, indexLabel: number) => {
         if (indexLabel === -1) {
+            // @ts-ignore
             const data: ICard = update(card, {
                 labels: {
-                    $push: [label],
-                },
-            });
+                    $push: [label]
+                }
+            })
             setCard(data);
         } else {
             const data: ICard = update(card, {
@@ -106,6 +115,7 @@ const ModalCardInfo = (props: IProps) => {
     };
 
     const onChangeComment = (cmt?: string) => {
+        // @ts-ignore
         const data: ICard = update(card, {
             comments: {
                 $push: [

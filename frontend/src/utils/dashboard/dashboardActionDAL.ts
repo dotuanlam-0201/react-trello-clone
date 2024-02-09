@@ -6,7 +6,7 @@ class DAL {
         return await http.post(`dashboard/${liscardId}/card/add`, body).then((res: any) => res.data)
             .catch((err: any) => err)
     }
-    addListCard = async (body: IListCard) => {
+    addListCard = async (body: {title: string,cards: Array<any>}) => {
         return await http.post('dashboard/listCard/add', body).then((res: any) => res.data)
             .catch((err: any) => err)
     }

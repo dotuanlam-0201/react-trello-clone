@@ -4,7 +4,6 @@ import { CSS } from "@dnd-kit/utilities";
 import { Card, Col, Divider, Row, Tooltip } from "antd";
 import { isEmpty } from "lodash";
 import { ICard } from "./model";
-import dayjs from "dayjs";
 interface IProps {
     onShowCardInfo: (card: ICard) => void;
     card: ICard;
