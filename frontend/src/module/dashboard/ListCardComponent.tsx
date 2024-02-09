@@ -14,7 +14,7 @@ import {
 } from "antd";
 import { find, map } from "lodash";
 import { useState } from "react";
-import { DashboardActionDAL } from "../../utils/dashboard/DashboardActionDAL";
+import { DashboardActionDAL } from "../../utils/dashboard/dashboardActionDAL";
 import CardComponent from "./CardComponent";
 import ModalCardInfo from "./ModalCardInfo";
 import { ICard, IListCard } from "./model";

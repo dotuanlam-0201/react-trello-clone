@@ -28,7 +28,7 @@ import { useEffect, useState } from "react";
 import update from "react-addons-update";
 import { MY_TRELLO_CONTANT } from "../../Contant";
 import { useGetFetchQuery } from "../../hook/useGetFetchQuery ";
-import { DashboardActionDAL } from "../../utils/dashboard/DashboardActionDAL";
+import { DashboardActionDAL } from "../../utils/dashboard/dashboardActionDAL";
 import { IResponse } from "../../utils/http";
 import { IUser } from "../Auth/model";
 import CustomEditor from "../share/CustomEditor";
