@@ -12,7 +12,7 @@ const EditableTitleComponent = (props: IProps) => {
     useEffect(() => {
         setTitle(props.title)
     }, [props.title])
-    
+
 
     return (
         <Paragraph editable={{
@@ -20,7 +20,9 @@ const EditableTitleComponent = (props: IProps) => {
                 setTitle(e)
                 props.onChange(e)
             },
-        }} style={{ display: 'inline' }} >{title}</Paragraph>
+        }} style={{ display: 'inline' }} >
+            <span style={{ fontSize: 18 }}>{title}</span>
+        </Paragraph>
     )
 }
 

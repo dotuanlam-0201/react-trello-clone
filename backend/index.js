@@ -6,13 +6,24 @@ const morgan = require('morgan')
 const dotenv = require('dotenv')
 const dashboardRoute = require('./routes/dashboard.route')
 
+const corsOption = {
+    credentials: true,
+    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    optionsSuccessStatus: 200,
+    methods: ['GET', 'POST'],
+}
+
 const app = express()
 app.use(bodyParser.json({ limit: '50mb' }))
-app.use(cors)
+app.use(cors(corsOption))
 app.use(morgan('common'))
 
-app.use('/dashboard', dashboardRoute)
-
+app.use((req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", ['http://localhost:5173']);
+    res.setHeader('Access-Control-Allow-Methods', 'POST,GET,OPTIONS,PUT,DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Accept');
+    next();
+});
 dotenv.config()
 
 mongoose
@@ -28,3 +39,4 @@ app.listen(process.env.PORT, () => {
     console.log(`Server is running on port ${process.env.PORT}`);
 })
 
+app.use('/dashboard', dashboardRoute)

@@ -10,7 +10,7 @@ const InputComment = (props: IProps) => {
     return (
         <Form form={form}>
             <Form.Item style={{ margin: 0 }} name={'comment'}>
-                <Input onPressEnter={(e: any) => {
+                <Input autoFocus onPressEnter={(e: any) => {
                     props.onChange(e.target.value)
                     form.resetFields()
                 }} style={{ marginTop: 8 }} placeholder='Comment' />

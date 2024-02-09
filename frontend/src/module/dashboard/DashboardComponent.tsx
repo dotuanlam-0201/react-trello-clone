@@ -1,54 +1,299 @@
-import { PlusOutlined } from "@ant-design/icons"
-import { Button, Col, Empty, Row } from "antd"
-import { isEmpty } from "lodash"
-import { useState } from "react"
+import { Active, DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, closestCorners } from "@dnd-kit/core"
+import { SortableContext, horizontalListSortingStrategy } from "@dnd-kit/sortable"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
+import { Col, Empty, Row, Skeleton, notification } from "antd"
+import { debounce, find, findIndex, get, isEmpty, isNumber, map } from "lodash"
+import { Dispatch, SetStateAction, useEffect, useState } from "react"
 import update from "react-addons-update"
-import ListCardComponent from "./ListCardComponent"
-import { IListCard } from "./model"
+import { DashboardActionDAL } from "../../utils/dashboard/DashboardActionDAL"
+import { IResponse } from "../../utils/http"
 import Header from "../layout/Header"
-import { v4 as uuidv4 } from 'uuid';
+import MainLayout from "../layout/MainLayout"
+import ListCardComponent from "./ListCardComponent"
+import ButtonAddListCard from "./components/ButtonAddListCard"
+import { useAppSensors } from "./hooks/useAppSensors"
+import { ICard, IListCard } from "./model"
+
 
 const DashboardComponent = () => {
-    const [listCard, setListCard] = useState([] as IListCard[])
+    const sensors = useAppSensors()
+    const [listCardDnd, setListCardDnd] = useState([] as IListCard[])
 
-    const onAddList = () => {
-        const newList = update(listCard, {
-            $push: [{
-                title: 'asdf',
-                cards: []
-            } as IListCard]
+    const queryListCard = useQuery({
+        queryKey: ['listCard'],
+        queryFn: DashboardActionDAL.getListCard,
+        placeholderData: keepPreviousData,
+    })
+
+    const updateListCard = async () => {
+        const layload = map(listCardDnd, (list: IListCard, index: number) => {
+            return { ...list, ...{ order: index + 1 } }
         })
-        setListCard(newList)
+        try {
+            await DashboardActionDAL.updateListCardByDragDrop(layload)
+        } catch (error) {
+            return
+        }
+    }
+
+    const debouncedUpdateListCard = debounce(updateListCard, 1000)
+
+    useEffect(() => {
+        if (queryListCard.data) {
+            setListCardDnd(queryListCard.data.result)
+        }
+        return () => {
+            setListCardDnd([])
+        }
+    }, [queryListCard.data])
+
+
+    let items = map(listCardDnd, (list: IListCard) => list._id)
+
+    const [active, setActive] = useState(undefined as undefined | Active)
+
+    const onAddList = async (title: string, sl: Dispatch<SetStateAction<boolean>>) => {
+        sl(true)
+        const res: IResponse<IListCard> = await DashboardActionDAL.addListCard({
+            title: title,
+            cards: [],
+        })
+        if (res.success) {
+            setTimeout(() => {
+                queryListCard.refetch()
+            }, 500);
+            notification.success({
+                message: 'Success'
+            })
+        } else {
+            notification.error({
+                message: 'Error'
+            })
+        }
+        sl(false)
+    }
+
+    if (queryListCard.isFetching) {
+        return <>
+            <Header />
+            <main id="dashboard">
+                <Skeleton />
+                <Skeleton />
+                <Skeleton />
+                <Skeleton />
+                <Skeleton />
+            </main>
+        </>
+    }
+
+    const onDragStart = (e: DragStartEvent) => {
+        if (e.active) {
+            setActive(e.active)
+        }
+    }
+
+    const moveListCard = (e: DragOverEvent) => {
+        const { active, over } = e
+        const indexActive = findIndex(listCardDnd, (list: IListCard) => list._id === active.id)
+        const indexOver = findIndex(listCardDnd, (list: IListCard) => list._id === over?.id)
+        const newList = update(listCardDnd, {
+            $splice: [
+                [indexActive, 1],
+                [indexOver, 0, listCardDnd[indexActive]],
+            ],
+        })
+        setListCardDnd(newList)
+    }
+
+    const moveCard = (e: DragOverEvent) => {
+        const { active, over } = e
+        if (active.id === over?.id || !active.id || !over?.id) return
+
+        let indexContainerActive: undefined | number
+        let indexContainerOver: undefined | number
+        let indexCardActive: undefined | number
+        let indexCardOver: undefined | number
+        let isContainerOverEmpty = false
+
+        listCardDnd.forEach((listCard: IListCard, indexList: number) => {
+            if (listCard._id === over.id) {
+                indexContainerOver = indexList
+                isContainerOverEmpty = true
+                indexCardOver = -1
+            }
+            if (isNumber(indexContainerActive) && isNumber(indexContainerOver) && isNumber(indexCardActive) && isNumber(indexCardOver)) {
+                return
+            }
+            listCard.cards.forEach((card: ICard, indexCard: number) => {
+                if (card._id === active.id) {
+                    indexCardActive = indexCard
+                    indexContainerActive = indexList
+                }
+                if (card._id === over.id) {
+                    indexCardOver = indexCard
+                    indexContainerOver = indexList
+                }
+            })
+        })
+
+        if (!isNumber(indexContainerActive) || !isNumber(indexContainerOver) || !isNumber(indexCardActive) || !isNumber(indexCardOver)) {
+            return
+        }
+
+        if (isContainerOverEmpty) {
+            const listRemoveActiveCard = update(listCardDnd, {
+                [indexContainerActive]: {
+                    cards: {
+                        $splice: [
+                            [indexCardActive, 1],
+                        ],
+                    }
+                }
+            })
+            const listPushActiveCard = update(listRemoveActiveCard, {
+                [indexContainerOver]: {
+                    cards: {
+                        $push: [listCardDnd[indexContainerActive].cards[indexCardActive]]
+                    }
+                }
+            })
+            setListCardDnd(listPushActiveCard)
+            return
+        }
+
+
+        if (indexContainerActive === indexContainerOver) {
+            const newList = update(listCardDnd, {
+                [indexContainerActive]: {
+                    cards: {
+                        $splice: [
+                            [indexCardActive, 1],
+                            [indexCardOver, 0, listCardDnd[indexContainerActive].cards[indexCardActive]],
+                        ],
+                    }
+                }
+            })
+            setListCardDnd(newList)
+        } else {
+            const listRemoveActiveCard = update(listCardDnd, {
+                [indexContainerActive]: {
+                    cards: {
+                        $splice: [
+                            [indexCardActive, 1],
+                        ],
+                    }
+                }
+            })
+            const listPushActiveCard = update(listRemoveActiveCard, {
+                [indexContainerOver]: {
+                    cards: {
+                        $unshift: [listCardDnd[indexContainerActive].cards[indexCardOver]]
+                    }
+                }
+            })
+            setListCardDnd(listPushActiveCard)
+        }
+
+    }
+
+    const onDragEnd = (e: DragEndEvent) => {
+        const { active, over } = e
+        if (!over) return;
+
+        if (get(active.data, 'current.sortable.containerId') === "ListCard" && get(over.data, 'current.sortable.containerId') === "ListCard") {
+            moveListCard(e)
+        } else {
+            moveCard(e)
+        }
+        debouncedUpdateListCard()
+        setActive(undefined)
+    }
+
+
+    const onDragOver = (e: DragOverEvent) => {
+        const { active, over } = e
+        if (!over) return;
+
+        if (get(active.data, 'current.sortable.containerId') === "ListCard" && get(over.data, 'current.sortable.containerId') === "ListCard") {
+            moveListCard(e)
+        } else {
+            moveCard(e)
+        }
+
+    }
+
+
+    const renderOverlay = () => {
+        const list = find(listCardDnd, (o: IListCard) => o._id === active?.id)
+        if (list) {
+            return <div style={{ transform: 'rotateZ(5deg)' }}>
+                <ListCardComponent
+                    list={list}
+                    onRefresh={() => { }}
+                />
+            </div>
+        }
     }
 
     return (
-        <>
-            <Header />
-            <main id="dashboard">
-                {isEmpty(listCard) && <Empty>
-                    <Button icon={<PlusOutlined />} onClick={onAddList}>
-                        Add a List
-                    </Button>
-                </Empty>}
+        <MainLayout>
 
-                {!isEmpty(listCard) && <Row wrap={false} gutter={[20, 20]}>
-                    {
-                        listCard.map((list: IListCard) => {
-                            return <Col key={uuidv4()} xs={24} sm={24} md={10} lg={8} xl={6} xxl={6}>
-                                <ListCardComponent list={list} />
+            {isEmpty(listCardDnd) && (
+                <Empty>
+                    <ButtonAddListCard onAddList={onAddList} />
+                </Empty>
+            )}
+
+            <DndContext
+                collisionDetection={closestCorners}
+                sensors={sensors}
+                onDragStart={onDragStart}
+                onDragEnd={onDragEnd}
+                onDragOver={onDragOver}
+            >
+                <SortableContext
+                    id="ListCard"
+                    strategy={horizontalListSortingStrategy}
+                    items={items}>
+                    <Row wrap={false} gutter={[20, 20]}>
+                        {listCardDnd.map((list: IListCard) => {
+                            return (
+                                <Col
+                                    key={list._id}
+                                    xs={24}
+                                    sm={24}
+                                    md={10}
+                                    lg={8}
+                                    xl={6}
+                                    xxl={6}
+                                >
+                                    <ListCardComponent
+                                        active={active}
+                                        onRefresh={queryListCard.refetch}
+                                        list={list}
+                                    />
+                                </Col>
+                            );
+                        })}
+                        {!isEmpty(listCardDnd) &&
+                            <Col>
+                                <ButtonAddListCard onAddList={onAddList} />
                             </Col>
-                        })
-                    }
-                    <Col>
-                        <Button icon={<PlusOutlined />} onClick={onAddList}>
-                            Add a List
-                        </Button>
-                    </Col>
-                </Row>}
+                        }
+                    </Row>
+                </SortableContext>
 
-            </main>
-        </>
-    )
+                {
+                    active && active?.data?.current?.type === "Column" &&
+                    <DragOverlay>
+                        {renderOverlay()}
+                    </DragOverlay>
+                }
+
+            </DndContext>
+
+        </MainLayout>
+    );
 }
 
 export default DashboardComponent

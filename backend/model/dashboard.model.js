@@ -5,10 +5,16 @@ const ListCardSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    order: {
+        type: Number,
+        required: true
+    },
     cards: {
-        type: [mongoose.Schema.Types.CardSchema],
-        required: false
-    }
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: 'Card'
+    },
+}, {
+    timestamps: true
 })
 
 const ListCard = mongoose.model('ListCard', ListCardSchema)
@@ -19,7 +25,7 @@ const CardSchema = new mongoose.Schema({
         required: true
     },
     labels: {
-        type: String,
+        type: [String],
     },
     description: {
         type: String,
@@ -32,6 +38,13 @@ const CardSchema = new mongoose.Schema({
     cover: {
         type: String,
     },
+    deadLine: {
+        type: String,
+    }
+}, {
+    timestamps: true
 })
 
-module.exports = { ListCard }
+const Card = mongoose.model('Card', CardSchema)
+
+module.exports = { ListCard, Card }

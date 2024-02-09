@@ -1,69 +1,121 @@
-import { FileTextOutlined, MoreOutlined, ProjectOutlined } from "@ant-design/icons";
-import { Button, Card, Col, Divider, Dropdown, Menu, Modal, Row, Tooltip } from "antd";
+import { ClockCircleOutlined, FileTextOutlined, ProjectOutlined } from "@ant-design/icons";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Card, Col, Divider, Row, Tooltip } from "antd";
 import { isEmpty } from "lodash";
 import { ICard } from "./model";
-import { v4  as uuidv4} from "uuid"
-
+import dayjs from "dayjs";
 interface IProps {
     onShowCardInfo: (card: ICard) => void;
-    onDeleteCard: (card: ICard, index: number) => void;
     card: ICard;
-    index: number
 }
 
 const CardComponent = (props: IProps) => {
+    const {
+        setNodeRef,
+        attributes,
+        listeners,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({
+        id: props.card._id,
+        data: {
+            type: "Card",
+        },
+    });
+
+    const style = {
+        transition,
+        transform: CSS.Transform.toString(transform),
+    };
+
+    if (isDragging) {
+        return (
+            <div
+                ref={setNodeRef}
+                style={{
+                    ...style,
+                    ...{
+                        background: "gray",
+                        opacity: 0.1,
+                        width: "100%",
+                        height: "80px",
+                        borderRadius: 12,
+                    },
+                }}
+            ></div>
+        );
+    }
+
+    const getStatusDeadline = () => {
+        if (dayjs(props.card.deadLine).diff(1, 'D')) {
+            return "red"
+        } else {
+            return undefined
+        }
+    }
+
+
     return (
-        <Card
-            cover={<div style={{ height: 30, background: props.card.cover || 'gray', textAlign: 'right' }}>
-                <Dropdown dropdownRender={() => {
-                    return <Menu  >
-                        <Menu.Item>
-                            <Button
-                                onClick={() => {
-                                    Modal.confirm({
-                                        title: "Are you sure to delete this card?",
-                                        onOk: () => props.onDeleteCard(props.card, props.index),
-                                    });
-                                }}
-                                danger
-                                size="small"
-                                type={"link"}
-                            >
-                                Delete card
-                            </Button>
-                        </Menu.Item>
-                    </Menu>
-                }} placement="bottomRight">
-                    <Button style={{ color: 'white' }} size="small" type="link" icon={<MoreOutlined />} />
-                </Dropdown>
-            </div>}
-            bordered
-            size="small"
-        >
-            <Row style={{
-                cursor: 'pointer'
-            }} onClick={() => props.onShowCardInfo(props.card)} gutter={[5, 5]}>
-                <Col xs={24}>
-                    {props.card.labels.map((label: string) => {
-                        return <Label key={uuidv4()} color={label} />;
-                    })}
-                </Col>
-                <Col xs={24}>{props.card.title}</Col>
-                <Col xs={24}>
-                    {props.card.description && (
-                        <Tooltip title={"Description"}>
-                            <ProjectOutlined />
-                            <Divider type="vertical" />
-                        </Tooltip>
-                    )}
-                    {
-                        !isEmpty(props.card.comments) && <Tooltip title={"Comment"}>
-                            <FileTextOutlined />
-                        </Tooltip>
-                    }
-                </Col>
-            </Row>
-        </Card>
+        <div ref={setNodeRef} style={style}>
+            <Card
+                hoverable
+                cover={
+                    <div
+                        {...listeners}
+                        {...attributes}
+                        style={{
+                            height: 30,
+                            cursor: "move",
+                            background: props.card.cover || "gray",
+                            textAlign: "right",
+                        }}
+                    ></div>
+                }
+                bordered
+                size="small"
+            >
+                <Row
+                    onClick={() => props.onShowCardInfo(props.card)}
+                    style={{
+                        cursor: "pointer",
+                    }}
+                    gutter={[5, 5]}
+                >
+                    <Col xs={24}>
+                        {props.card.labels.map((label: string) => {
+                            return <Label key={label} color={label} />;
+                        })}
+                    </Col>
+                    <Col style={{ textOverflow: "ellipsis", overflow: "hidden" }} xs={24}>
+                        {props.card.title}
+                    </Col>
+                    <Col xs={24}>
+                        {
+                            props.card.deadLine && <Tooltip title={props.card.deadLine}>
+                                <ClockCircleOutlined style={{ color: getStatusDeadline() || 'inherit' }} />
+                                <Divider type="vertical" />
+                            </Tooltip>
+                        }
+                        {props.card.description && (
+                            <Tooltip title={"Description"}>
+                                <ProjectOutlined />
+                                <Divider type="vertical" />
+                            </Tooltip>
+                        )}
+                        {!isEmpty(props.card.comments) && (
+                            <Tooltip title={"Comment"}>
+                                <FileTextOutlined />
+                            </Tooltip>
+                        )}
+                    </Col>
+                </Row>
+            </Card>
+
+
+
+        </div>
     );
 };
 

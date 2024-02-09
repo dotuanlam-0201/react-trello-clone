@@ -1,158 +1,220 @@
 import { MoreOutlined, PlusOutlined } from "@ant-design/icons";
+import { Active, DragOverlay } from "@dnd-kit/core";
+import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
     Button,
     Card,
     Col,
     Dropdown,
     Menu,
-    MenuProps,
     Modal,
     Row,
-    Space
+    notification,
 } from "antd";
-import { useEffect, useState } from "react";
+import { find, map } from "lodash";
+import { useState } from "react";
+import { DashboardActionDAL } from "../../utils/dashboard/DashboardActionDAL";
 import CardComponent from "./CardComponent";
-import { ICard, IListCard } from "./model";
 import ModalCardInfo from "./ModalCardInfo";
-import update from "react-addons-update";
-import { findIndex } from "lodash";
-import { v4 as uuidv4 } from 'uuid'
+import { ICard, IListCard } from "./model";
 
 interface IProps {
     list: IListCard;
+    onRefresh: () => void;
+    active?: Active;
+
 }
-
 const ListCardComponent = (props: IProps) => {
-    const [visibleAddCard, setVisibleAddCard] = useState(false as boolean)
-    const [listCard, setListCard] = useState([] as ICard[])
-    const [selectedCard, setSelectedCard] = useState(undefined as undefined | ICard)
+    const [visibleAddCard, setVisibleAddCard] = useState(false as boolean);
+    const [selectedCard, setSelectedCard] = useState(
+        undefined as undefined | ICard
+    );
 
+    const items = map(props.list.cards, (card: ICard) => card._id)
 
-    const onClickMenuDropdown: MenuProps['onClick'] = (e) => {
-        if (e.key === 'add') {
-            setVisibleAddCard(true)
+    const onDeleteListCard = async () => {
+        const res = await DashboardActionDAL.deleteListCard(props.list._id);
+        if (res.success) {
+            setTimeout(() => {
+                props.onRefresh();
+            }, 1000);
+            notification.success({ message: "Success" });
+        } else {
+            notification.error({ message: "Error" });
         }
     };
 
-    const onAddCard = (card: ICard) => {
-        if (selectedCard) {
-            const indexSelectedCard = findIndex(listCard, selectedCard)
+    const {
+        setNodeRef,
+        attributes,
+        listeners,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({
+        id: props.list._id,
+        data: {
+            type: "Column",
+        },
+    });
 
-            if (indexSelectedCard < 0) return
+    const style = {
+        transition,
+        transform: CSS.Transform.toString(transform),
+    };
 
-            const data = update(listCard, {
-                [indexSelectedCard]: {
-                    $set: card
-                }
-            })
-            setListCard(data)
-        } else {
-            const data = update(listCard, {
-                $push: [card]
-            })
-            setListCard(data)
-        }
+    if (isDragging) {
+        return (
+            <div
+                ref={setNodeRef}
+                style={{
+                    ...style,
+                    ...{
+                        background: "gray",
+                        opacity: 0.3,
+                        width: "100%",
+                        height: "85vh",
+                        borderRadius: 12
+                    },
+                }}
+            ></div>
+        );
+
     }
 
-    const onDeleteCard = (card: ICard, index: number) => {
-        const data = update(listCard, {
-            $splice: [[index, 1]]
-        })
-        setListCard(data)
+    const renderOverlay = () => {
+        const card = find(props.list.cards, (card: ICard) => card._id === props.active?.id)
+        if (card) {
+            return <CardComponent
+                card={card}
+                onShowCardInfo={() => { }}
+            />
+        }
     }
 
 
     return (
-        <>
+        <div ref={setNodeRef} style={style}>
             <Card
+                style={{
+                    maxHeight: '85vh',
+                    overflowY: 'auto'
+                }}
                 headStyle={{
-                    cursor: "pointer",
+                    cursor: "move",
                 }}
                 size="small"
                 bordered
                 title={
-                    <Row justify={"space-between"}>
-                        <Col>{props.list.title}</Col>
-                        <Col>
-                            <Dropdown dropdownRender={() => {
-                                return <Menu onClick={onClickMenuDropdown} items={items} />
-                            }} placement="bottomRight">
-                                <Button size="small" type="link" icon={<MoreOutlined />} />
-                            </Dropdown>
-                        </Col>
-                    </Row>
+                    <div {...attributes} {...listeners}>
+                        <Row justify={"space-between"}>
+                            <Col>{props.list.title}</Col>
+                            <Col>
+                                <Dropdown
+                                    overlay={
+                                        <Menu
+                                            onClick={(e: any) => {
+                                                if (e.key === "add") {
+                                                    setVisibleAddCard(true);
+                                                }
+                                            }}
+                                        >
+                                            <Menu.Item key={"add"}>
+                                                <Button size="small" type="link">
+                                                    Add a card
+                                                </Button>
+                                            </Menu.Item>
+                                            <Menu.Item>
+                                                <Button
+                                                    onClick={() => {
+                                                        Modal.confirm({
+                                                            title: (
+                                                                <>
+                                                                    Are you sure to delete list{" "}
+                                                                    <b>{props.list.title}</b> ?
+                                                                </>
+                                                            ),
+                                                            onOk: onDeleteListCard,
+                                                        });
+                                                    }}
+                                                    danger
+                                                    size="small"
+                                                    type={"link"}
+                                                >
+                                                    Delete list
+                                                </Button>
+                                            </Menu.Item>
+                                        </Menu>
+                                    }
+                                    placement="bottomRight"
+                                >
+                                    <Button size="small" type="link" icon={<MoreOutlined />} />
+                                </Dropdown>
+                            </Col>
+                        </Row>
+                    </div>
                 }
                 id="dashboard-list-card"
             >
                 <Row gutter={[20, 20]}>
+
                     <Col xs={24}>
-                        <Row gutter={[10, 10]}>
-                            {
-                                listCard.map((card: ICard, index: number) => {
-                                    return <Col xs={24}>
-                                        <CardComponent
-                                            key={uuidv4()}
-                                            index={index}
-                                            onDeleteCard={(card: ICard) => onDeleteCard(card, index)}
-                                            card={card}
-                                            onShowCardInfo={(card: ICard) => {
-                                                setSelectedCard(card)
-                                                setVisibleAddCard(true)
-                                            }}
-                                        />
-                                    </Col>
-                                })
-                            }
-                        </Row>
+                        <SortableContext
+                            id="Card"
+                            strategy={verticalListSortingStrategy}
+                            items={items}>
+                            <Row gutter={[10, 10]}>
+                                {props.list.cards.map((card: ICard) => {
+                                    return (
+                                        <Col xs={24}>
+                                            <CardComponent
+                                                key={props.list._id}
+                                                card={card}
+                                                onShowCardInfo={(card: ICard) => {
+                                                    setSelectedCard(card);
+                                                    setVisibleAddCard(true);
+                                                }}
+                                            />
+                                        </Col>
+                                    );
+                                })}
+                            </Row>
+                        </SortableContext>
+                        {
+                            props.active && props.active?.data?.current?.type === "Card" &&
+                            <DragOverlay>
+                                {renderOverlay()}
+                            </DragOverlay>
+                        }
+
                     </Col>
 
                     <Col xs={24}>
-                        <Button onClick={() => setVisibleAddCard(true)} icon={<PlusOutlined />} size="small" type="link">Add a card</Button>
+                        <Button
+                            onClick={() => setVisibleAddCard(true)}
+                            icon={<PlusOutlined />}
+                            size="small"
+                            type="link"
+                        >
+                            Add a card
+                        </Button>
                     </Col>
-
                 </Row>
             </Card>
 
             <ModalCardInfo
+                listCardId={props.list._id}
+                onRefresh={props.onRefresh}
                 selectedCard={selectedCard}
-                onSave={onAddCard}
                 visible={visibleAddCard}
                 onClose={() => {
-                    setVisibleAddCard(false)
-                    setSelectedCard(undefined)
+                    setVisibleAddCard(false);
+                    setSelectedCard(undefined);
                 }}
             />
-        </>
+        </div>
     );
 };
 
 export default ListCardComponent;
-
-const items: MenuProps["items"] = [
-    {
-        key: "add",
-        label: (
-            <Button size="small" type="link">
-                Add a card
-            </Button>
-        ),
-    },
-    {
-        key: "delete",
-        label: (
-            <Button
-                onClick={() => {
-                    Modal.confirm({
-                        title: "Are you sure to delete list?",
-                        onOk: () => { },
-                    });
-                }}
-                danger
-                size="small"
-                type={"link"}
-            >
-                Delete list
-            </Button>
-        ),
-    },
-];
