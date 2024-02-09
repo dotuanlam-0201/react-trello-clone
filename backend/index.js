@@ -5,6 +5,7 @@ const mongoose = require('mongoose')
 const morgan = require('morgan')
 const dotenv = require('dotenv')
 const dashboardRoute = require('./routes/dashboard.route')
+const userRoute = require('./routes/user.route')
 
 const corsOption = {
     credentials: true,
@@ -40,3 +41,4 @@ app.listen(process.env.PORT, () => {
 })
 
 app.use('/dashboard', dashboardRoute)
+app.use('/user', userRoute)

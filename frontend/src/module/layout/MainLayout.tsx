@@ -1,7 +1,18 @@
-import { ReactNode } from "react"
+import { ReactNode, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+import { useGetDataFromLocal } from "../../hook/useGetDataFromLocal"
 import Header from "./Header"
 
 const MainLayout = ({ children }: { children: ReactNode }) => {
+    const token = useGetDataFromLocal('TOKEN')
+    const navigate = useNavigate()
+
+    useEffect(() => {
+        if (!token) {
+            navigate({ pathname: '/login' })
+        }
+    }, [])
+
     return (
         <>
             <Header />

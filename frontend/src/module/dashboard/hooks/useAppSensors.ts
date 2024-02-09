@@ -15,6 +15,6 @@ export const useAppSensors = () => {
         }),
         useSensor(KeyboardSensor, {
             coordinateGetter: sortableKeyboardCoordinates
-          })
+        })
     );
 };

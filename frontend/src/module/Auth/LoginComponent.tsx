@@ -1,60 +1,93 @@
 import { GithubFilled, MailOutlined, RightCircleOutlined } from "@ant-design/icons";
-import { Card, Col, Row } from "antd";
+import { useQuery } from "@tanstack/react-query";
+import { Card, Col, Row, notification } from "antd";
 import { GithubAuthProvider, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { auth } from "../../firebase";
+import { useGetDataFromLocal } from "../../hook/useGetDataFromLocal";
+import { DashboardActionDAL } from "../../utils/dashboard/DashboardActionDAL";
+import { UserActionDAL } from "../../utils/dashboard/UserActionDAL";
+import { IResponse } from "../../utils/http";
+import { IUser } from "./model";
 
 const ggProvider = new GoogleAuthProvider();
 const githubProvider = new GithubAuthProvider();
 
 
 const LoginComponent = () => {
+    const navigate = useNavigate()
+
+    const queryUser = useQuery({
+        queryKey: ['user'],
+        queryFn: () => UserActionDAL.getUser(useGetDataFromLocal('TOKEN')),
+    })
+
+    const user: IResponse<IUser> | undefined = queryUser.data
+
+    useEffect(() => {
+        if (user && user.success && user.result) {
+            navigate({ pathname: '/' })
+        }
+    }, [user])
 
     const onLoginGoogle = () => {
         signInWithPopup(auth, ggProvider)
-            .then((result) => {
-                console.log("🚀 ~ .then ~ result:", result)
-                // This gives you a Google Access Token. You can use it to access the Google API.
+            .then(async (result) => {
                 const credential = GoogleAuthProvider.credentialFromResult(result);
                 const token = credential?.accessToken;
-                console.log("🚀 ~ .then ~ token:", token)
-                // The signed-in user info.
                 const user = result.user;
-                // IdP data available using getAdditionalUserInfo(result)
-                // ...
-            }).catch((error) => {
-                // Handle Errors here.
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                // The email of the user's account used.
-                const email = error.customData.email;
-                // The AuthCredential type that was used.
-                const credential = GoogleAuthProvider.credentialFromError(error);
-                // ...
+                const payload = {
+                    userName: user.displayName,
+                    token: token,
+                    imgURL: user.photoURL,
+                    userId: useGetDataFromLocal('ID'),
+                } as IUser
+                const resLogin: IResponse<IUser> = await UserActionDAL.login(payload)
+                if (resLogin.success) {
+                    localStorage.setItem('TOKEN', token || '')
+                    localStorage.setItem('ID', resLogin.result._id)
+                    const board = {
+                        listId: resLogin.result._id,
+                        listCard: [],
+                        members: [resLogin.result._id]
+                    }
+                    await DashboardActionDAL.createBoard(board)
+                    navigate({ pathname: '/' })
+                }
+            }).catch(() => {
+                navigate({ pathname: '/login' })
+                notification.error({ message: 'Some thing went wrong!' })
             });
     }
 
     const onLoginGithub = () => {
         signInWithPopup(auth, githubProvider)
-            .then((result) => {
-                // This gives you a GitHub Access Token. You can use it to access the GitHub API.
+            .then(async (result) => {
                 const credential = GithubAuthProvider.credentialFromResult(result);
                 const token = credential?.accessToken;
-                console.log("🚀 ~ .then ~ token:", token)
-
-                // The signed-in user info.
                 const user = result.user;
-                // IdP data available using getAdditionalUserInfo(result)
-                // ...
-            }).catch((error) => {
-                console.log("🚀 ~ .then ~ error:", error)
-                // Handle Errors here.
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                // The email of the user's account used.
-                const email = error.customData.email;
-                // The AuthCredential type that was used.
-                const credential = GithubAuthProvider.credentialFromError(error);
-                // ...
+                const payload = {
+                    userName: user.displayName,
+                    token: token,
+                    imgURL: user.photoURL,
+                    userId: useGetDataFromLocal('ID'),
+                } as IUser
+                const resLogin: IResponse<IUser> = await UserActionDAL.login(payload)
+                if (resLogin.success) {
+                    localStorage.setItem('TOKEN', token || '')
+                    localStorage.setItem('ID', resLogin.result._id)
+                    const board = {
+                        listId: resLogin.result._id,
+                        listCard: [],
+                        members: [resLogin.result._id]
+                    }
+                    await DashboardActionDAL.createBoard(board)
+                    navigate({ pathname: '/' })
+                }
+            }).catch(() => {
+                navigate({ pathname: '/login' })
+                notification.error({ message: 'Some thing went wrong!' })
             });
     }
 

@@ -48,14 +48,6 @@ const CardComponent = (props: IProps) => {
         );
     }
 
-    const getStatusDeadline = () => {
-        if (dayjs(props.card.deadLine).diff(1, 'D')) {
-            return "red"
-        } else {
-            return undefined
-        }
-    }
-
 
     return (
         <div ref={setNodeRef} style={style}>
@@ -94,7 +86,7 @@ const CardComponent = (props: IProps) => {
                     <Col xs={24}>
                         {
                             props.card.deadLine && <Tooltip title={props.card.deadLine}>
-                                <ClockCircleOutlined style={{ color: getStatusDeadline() || 'inherit' }} />
+                                <ClockCircleOutlined />
                                 <Divider type="vertical" />
                             </Tooltip>
                         }

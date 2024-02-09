@@ -14,9 +14,9 @@ class DAL {
         return http.post(`dashboard/${liscardId}/card/update`, body).then((res: any) => res.data)
             .catch((err: any) => err)
     }
-    getListCard = async () => {
-        return await http.post('dashboard/listCard/get/all').then((res: any) => res.data)
-            .catch((err: any) => new ListCard())
+    getListCard = async (payload: { id: string }) => {
+        return await http.post('dashboard/listCard/get/all', payload).then((res: any) => res.data)
+            .catch(() => new ListCard())
     }
     deleteListCard = async (listCardId: string) => {
         return await http.post(`dashboard/listCard/${listCardId}/delete`).then((res: any) => res.data)
@@ -28,6 +28,10 @@ class DAL {
     }
     updateListCardByDragDrop = (listCard: IListCard[]) => {
         return http.post(`dashboard/listCard/update/byDragDrop`, listCard).then((res: any) => res.data)
+            .catch((err: any) => err)
+    }
+    createBoard = (body: { listId: string, listCard: IListCard[], members: string[] }) => {
+        return http.post(`dashboard/createBoard`, body).then((res: any) => res.data)
             .catch((err: any) => err)
     }
 }

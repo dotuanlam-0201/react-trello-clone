@@ -22,18 +22,19 @@ import {
     message,
     notification,
 } from "antd";
+import dayjs from "dayjs";
 import { findIndex, isArray } from "lodash";
 import { useEffect, useState } from "react";
 import update from "react-addons-update";
 import { MY_TRELLO_CONTANT } from "../../Contant";
+import { useGetFetchQuery } from "../../hook/useGetFetchQuery ";
 import { DashboardActionDAL } from "../../utils/dashboard/DashboardActionDAL";
 import { IResponse } from "../../utils/http";
+import { IUser } from "../Auth/model";
 import CustomEditor from "../share/CustomEditor";
 import EditableTitleComponent from "./components/EditableTitleComponent";
 import InputComment from "./components/InputComment";
 import { ICard, IComment } from "./model";
-import moment from 'moment'
-import dayjs from "dayjs";
 
 interface IProps {
     visible: boolean;
@@ -51,6 +52,8 @@ const ModalCardInfo = (props: IProps) => {
         comments: [],
         cover: "",
     } as ICard);
+
+    const user: IResponse<IUser> | undefined = useGetFetchQuery(['user'])
 
     useEffect(() => {
         if (props.visible && props.selectedCard) {
@@ -107,9 +110,9 @@ const ModalCardInfo = (props: IProps) => {
             comments: {
                 $push: [
                     {
-                        name: "Lam",
+                        name: user?.result?.userName,
                         comment: cmt,
-                        avatar: "",
+                        avatar: user?.result?.imgURL,
                     },
                 ],
             },

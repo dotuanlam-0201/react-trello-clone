@@ -1,4 +1,4 @@
-const { ListCard, Card } = require('../model/dashboard.model')
+const { ListCard, Card, Board } = require('../model/dashboard.model')
 
 const DashboardController = {
     addListCard: async (req, res) => {
@@ -7,6 +7,13 @@ const DashboardController = {
             const order = await ListCard.countDocuments() + 1
             payload['order'] = order
             const newListCard = new ListCard(payload)
+            await Board.updateOne(
+                { 'listId': req.body.boardId }
+                , {
+                    $push: {
+                        listCard: newListCard._id
+                    }
+                })
             const saveListCard = await newListCard.save()
             return res.status(200).json({
                 success: true,
@@ -155,6 +162,21 @@ const DashboardController = {
             res.status(200).json({
                 success: true,
                 result: payload
+            })
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                result: error
+            })
+        }
+    },
+    createBoard: async (req, res) => {
+        try {
+            const addBoard = Board(req.body)
+            await addBoard.save()
+            res.status(200).json({
+                success: true,
+                result: addBoard
             })
         } catch (error) {
             res.status(500).json({

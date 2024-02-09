@@ -1,10 +1,11 @@
-import { Active, DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, closestCorners } from "@dnd-kit/core"
+import { Active, DndContext, DragCancelEvent, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, closestCorners } from "@dnd-kit/core"
 import { SortableContext, horizontalListSortingStrategy } from "@dnd-kit/sortable"
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
-import { Col, Empty, Row, Skeleton, notification } from "antd"
-import { debounce, find, findIndex, get, isEmpty, isNumber, map } from "lodash"
+import { Col, Row, Skeleton, notification } from "antd"
+import { find, findIndex, get, isEmpty, isNumber, map } from "lodash"
 import { Dispatch, SetStateAction, useEffect, useState } from "react"
 import update from "react-addons-update"
+import { useGetDataFromLocal } from "../../hook/useGetDataFromLocal"
 import { DashboardActionDAL } from "../../utils/dashboard/DashboardActionDAL"
 import { IResponse } from "../../utils/http"
 import Header from "../layout/Header"
@@ -21,7 +22,7 @@ const DashboardComponent = () => {
 
     const queryListCard = useQuery({
         queryKey: ['listCard'],
-        queryFn: DashboardActionDAL.getListCard,
+        queryFn: () => DashboardActionDAL.getListCard({ id: useGetDataFromLocal('ID') }),
         placeholderData: keepPreviousData,
     })
 
@@ -36,8 +37,6 @@ const DashboardComponent = () => {
         }
     }
 
-    const debouncedUpdateListCard = debounce(updateListCard, 1000)
-
     useEffect(() => {
         if (queryListCard.data) {
             setListCardDnd(queryListCard.data.result)
@@ -46,7 +45,6 @@ const DashboardComponent = () => {
             setListCardDnd([])
         }
     }, [queryListCard.data])
-
 
     let items = map(listCardDnd, (list: IListCard) => list._id)
 
@@ -205,23 +203,21 @@ const DashboardComponent = () => {
         } else {
             moveCard(e)
         }
-        debouncedUpdateListCard()
+        updateListCard()
         setActive(undefined)
     }
 
 
     const onDragOver = (e: DragOverEvent) => {
+        console.log("🚀 ~ onDragOver ~ e:", e)
         const { active, over } = e
         if (!over) return;
-
-        if (get(active.data, 'current.sortable.containerId') === "ListCard" && get(over.data, 'current.sortable.containerId') === "ListCard") {
+        if (get(active.data, 'current.type') === "Column" && get(over.data, 'current.type') === "Column") {
             moveListCard(e)
         } else {
             moveCard(e)
         }
-
     }
-
 
     const renderOverlay = () => {
         const list = find(listCardDnd, (o: IListCard) => o._id === active?.id)
@@ -235,16 +231,19 @@ const DashboardComponent = () => {
         }
     }
 
+    const onDragCancel = (e: DragCancelEvent) => {
+        setActive(undefined)
+    }
+
     return (
         <MainLayout>
 
             {isEmpty(listCardDnd) && (
-                <Empty>
-                    <ButtonAddListCard onAddList={onAddList} />
-                </Empty>
+                <ButtonAddListCard onAddList={onAddList} />
             )}
 
             <DndContext
+                onDragCancel={onDragCancel}
                 collisionDetection={closestCorners}
                 sensors={sensors}
                 onDragStart={onDragStart}

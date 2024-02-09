@@ -45,6 +45,20 @@ const CardSchema = new mongoose.Schema({
     timestamps: true
 })
 
-const Card = mongoose.model('Card', CardSchema)
+const BoardSchema = new mongoose.Schema({
+    listId: {
+        type: String,
+        required: true
+    },
+    listCard: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: 'ListCard'
+    },
+    members: {
+        type: [String]
+    }
+})
 
-module.exports = { ListCard, Card }
+const Card = mongoose.model('Card', CardSchema)
+const Board = mongoose.model('Board', BoardSchema)
+module.exports = { ListCard, Card, Board }
