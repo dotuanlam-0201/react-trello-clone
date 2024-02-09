@@ -1,0 +1,4 @@
+[build]
+ base = "frontend"
+ command = "npm i && npm run start"
+ publish = "/dist"
