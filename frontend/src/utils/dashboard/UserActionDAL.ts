@@ -12,7 +12,7 @@ class DAl {
     }
     getAllUsers = async () => {
         return await http.get(`user/get/all`).then((res: any) => res.data)
-            .catch((err: any) => new Users())
+            .catch(() => new Users())
     }
     logout = async (id: string) => {
         return await http.post(`user/logout?id=${id}`).then((res: any) => res.data)

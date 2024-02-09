@@ -6,7 +6,6 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../../firebase";
 import { useGetDataFromLocal } from "../../hook/useGetDataFromLocal";
-import { DashboardActionDAL } from "../../utils/dashboard/DashboardActionDAL";
 import { UserActionDAL } from "../../utils/dashboard/UserActionDAL";
 import { IResponse } from "../../utils/http";
 import { IUser } from "./model";
@@ -47,12 +46,6 @@ const LoginComponent = () => {
                 if (resLogin.success) {
                     localStorage.setItem('TOKEN', token || '')
                     localStorage.setItem('ID', resLogin.result._id)
-                    const board = {
-                        listId: resLogin.result._id,
-                        listCard: [],
-                        members: [resLogin.result._id]
-                    }
-                    await DashboardActionDAL.createBoard(board)
                     navigate({ pathname: '/' })
                 }
             }).catch(() => {
@@ -77,12 +70,6 @@ const LoginComponent = () => {
                 if (resLogin.success) {
                     localStorage.setItem('TOKEN', token || '')
                     localStorage.setItem('ID', resLogin.result._id)
-                    const board = {
-                        listId: resLogin.result._id,
-                        listCard: [],
-                        members: [resLogin.result._id]
-                    }
-                    await DashboardActionDAL.createBoard(board)
                     navigate({ pathname: '/' })
                 }
             }).catch(() => {
