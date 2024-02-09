@@ -161,7 +161,6 @@ const ListCardComponent = (props: IProps) => {
 
                     <Col xs={24}>
                         <SortableContext
-                            id="Card"
                             strategy={verticalListSortingStrategy}
                             items={items}>
                             <Row gutter={[10, 10]}>

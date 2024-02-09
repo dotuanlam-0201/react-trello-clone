@@ -209,7 +209,6 @@ const DashboardComponent = () => {
 
 
     const onDragOver = (e: DragOverEvent) => {
-        console.log("🚀 ~ onDragOver ~ e:", e)
         const { active, over } = e
         if (!over) return;
         if (get(active.data, 'current.type') === "Column" && get(over.data, 'current.type') === "Column") {
