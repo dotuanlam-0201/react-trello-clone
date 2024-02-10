@@ -8,7 +8,7 @@ const dashboardRoute = require('./routes/dashboard.route')
 const userRoute = require('./routes/user.route')
 
 const corsOption = {
-    origin: true,
+    origin: ['https://main--trello-clone-do-tuan-lam.netlify.app','http://localhost:5173'],
     methods: ["POST", 'GET'],
     credentials: true,
     optionsSuccessStatus: 200,
@@ -22,7 +22,7 @@ app.use(cors(corsOption))
 app.use(morgan('common'))
 
 app.use((req, res, next) => {
-    res.setHeader("Access-Control-Allow-Origin", "https://trello-clone-svc.onrender.com");
+    res.setHeader("Access-Control-Allow-Origin", 'https://main--trello-clone-do-tuan-lam.netlify.app');
     res.setHeader('Access-Control-Allow-Methods', 'POST,GET,OPTIONS,PUT,DELETE');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Accept');
     next();
