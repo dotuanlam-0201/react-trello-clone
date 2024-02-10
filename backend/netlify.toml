@@ -1,4 +1,4 @@
 [build]
- base = "frontend"
+ base = "backend"
  command = "npm i && npm run start"
- publish = "/dist"
+ publish = "/index.js"
