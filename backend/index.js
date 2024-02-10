@@ -8,10 +8,12 @@ const dashboardRoute = require('./routes/dashboard.route')
 const userRoute = require('./routes/user.route')
 
 const corsOption = {
+    origin: true,
+    methods: ["POST", 'GET'],
     credentials: true,
-    origin: ['https://trello-clone-svc.onrender.com', 'http://localhost:5173'],
     optionsSuccessStatus: 200,
     methods: ['GET', 'POST'],
+    maxAge: 3600
 }
 
 const app = express()
