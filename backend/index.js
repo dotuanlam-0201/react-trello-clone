@@ -9,7 +9,7 @@ const userRoute = require('./routes/user.route')
 
 const corsOption = {
     credentials: true,
-    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    origin: ['https://trello-clone-svc.onrender.com', 'http://localhost:5173'],
     optionsSuccessStatus: 200,
     methods: ['GET', 'POST'],
 }
