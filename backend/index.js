@@ -20,7 +20,7 @@ app.use(cors(corsOption))
 app.use(morgan('common'))
 
 app.use((req, res, next) => {
-    res.setHeader("Access-Control-Allow-Origin", ['http://localhost:5173', 'https://main--trello-clone-do-tuan-lam.netlify.app']);
+    res.setHeader("Access-Control-Allow-Origin", '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST,GET,OPTIONS,PUT,DELETE');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Accept');
     next();
