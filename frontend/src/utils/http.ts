@@ -4,7 +4,7 @@ class HTTP {
     instance: AxiosInstance
     constructor() {
         this.instance = axios.create({
-            baseURL: 'http://localhost:3000/',
+            baseURL: 'https://trello-clone-svc.onrender.com/',
             timeout: 10000,
             headers: {
                 'Content-Type': 'application/json',

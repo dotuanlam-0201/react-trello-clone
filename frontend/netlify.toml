@@ -2,4 +2,3 @@
  base = "frontend"
  command = "npm i && npm run build"
  publish = "/dist"
- SVC_URL = "https://trello-clone-svc.onrender.com"
